@@ -23,17 +23,18 @@ services:
 
   # Nginx Service
 
+
   webserver:
     image: nginx:alpine
     container_name: nginx_server
     restart: unless-stopped
     ports:
-      - "8001:81"
-      - "8443:443"
+      - "8000:80"
     volumes:
       - ./:/var/www
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
-      - ./docker/nginx/certs/:/etc/nginx/certs/
+    depends_on:
+      - app
     networks:
       - laravel_network
 
@@ -60,18 +61,27 @@ services:
 
   # phpMyAdmin Service
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: yateem_phpmyadmin
-    restart: unless-stopped
+    image: phpmyadmin:latest
+    platform: linux/amd64
+    container_name: yateem-pma
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      UPLOAD_LIMIT: 200M
+      PMA_USER: laravel
+      PMA_PASSWORD: secret
+      UPLOAD_LIMIT: 100M
+      UPLOAD_MAX_SIZE: 100M
+      MEMORY_LIMIT: 512M
       MAX_EXECUTION_TIME: 300
+    restart: always
     ports:
-      - 8081:80
+      - "8080:80"
     networks:
       - laravel_network
+
 
 # Docker Networks
 networks:
