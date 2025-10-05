@@ -22,11 +22,11 @@ services:
       - laravel_network
 
   # Nginx Service
+
   webserver:
     image: nginx:alpine
     container_name: nginx_server
     restart: unless-stopped
-    tty: true
     ports:
       - "8001:81"
       - "8443:443"
@@ -61,14 +61,13 @@ services:
   # phpMyAdmin Service
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: pma
+    container_name: yateem_phpmyadmin
     restart: unless-stopped
-    depends_on:
-      - db
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 200M
+      MAX_EXECUTION_TIME: 300
     ports:
       - 8081:80
     networks:
