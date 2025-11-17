@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Orphan;
+use App\Models\Sponsorship;
+use App\Models\Disbursements;
 use App\Models\Family;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Validator;
+
 
 class FamilyController extends Controller
 {
@@ -46,21 +51,23 @@ class FamilyController extends Controller
 
     public function store(Request $request)
     {
+        
         $request->validate([
             'widow_name' => 'required|string|max:255',
             'widow_phone' => 'nullable|string|max:20',
             'widow_email' => 'nullable|email|max:255',
-            'widow_date_of_birth' => 'required|date',
+            'widow_date_of_birth' => 'nullable|date',
             'address' => 'required|string',
             'city' => 'required|string|max:100',
             'region' => 'nullable|string|max:100',
-            'orphans_count' => 'sometimes|integer|min:0',
-            'status' => 'sometimes|in:active,inactive,pending',
-            'registration_date' => 'sometimes|date',
+            'orphans_count' => 'nullable|integer|min:0',
+            'status' => 'nullable|in:active,inactive,pending',
+            'registration_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
         $data = $request->all();
+        
         $data['registration_date'] = $request->registration_date ?? now();
 
         $family = Family::create($data);

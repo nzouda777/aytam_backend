@@ -58,7 +58,7 @@ class Family extends Model
 
     public function disbursements()
     {
-        return $this->hasMany(Disbursement::class);
+        return $this->hasMany(Disbursements::class);
     }
 
     // Scopes
