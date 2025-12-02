@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             UsersTableSeeder::class,
             CategoriesTableSeeder::class,
             FamilySeeder::class,
+            OrphanSeeder::class,
+            SponsorshipSeeder::class, // Add this line
         ]);
     }
 }

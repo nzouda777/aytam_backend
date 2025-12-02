@@ -50,5 +50,36 @@ class UsersTableSeeder extends Seeder
             'phone' => '+237690000003',
             'is_active' => true,
         ]);
+
+        // Quelques parrains de test
+        User::create([
+            'name' => 'Pierre Bernard',
+            'email' => 'pierre.bernard@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'sponsor',
+            'phone' => '+237690000004',
+            'is_active' => true,
+        ]);
+
+        User::create([
+            'name' => 'Sophie Laurent',
+            'email' => 'sophie.laurent@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'sponsor',
+            'phone' => '+237690000005',
+            'is_active' => true,
+        ]);
+
+        // Un autre parrain avec plus d'informations
+        User::create([
+            'name' => 'Claire Moreau',
+            'email' => 'claire.moreau@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'sponsor',
+            'phone' => '+237690000006',
+            'address' => 'Yaoundé, Cameroun',
+            'is_active' => true,
+        ]);
+
     }
 }

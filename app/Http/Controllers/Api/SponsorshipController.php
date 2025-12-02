@@ -43,7 +43,9 @@ class SponsorshipController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'family_id' => 'required|exists:families,id',
+            'orphan_id' => 'required|exists:orphans,id',
             'monthly_amount' => 'required|numeric|min:1',
+            'name' => 'nullable|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'payment_frequency' => 'required|in:monthly,quarterly,yearly',
@@ -78,6 +80,7 @@ class SponsorshipController extends Controller
             'end_date' => 'nullable|date|after:start_date',
             'status' => 'sometimes|in:active,paused,completed,cancelled',
             'payment_frequency' => 'sometimes|in:monthly,quarterly,yearly',
+            'name' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
 

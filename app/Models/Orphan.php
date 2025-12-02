@@ -72,4 +72,9 @@ class Orphan extends Model
         $age = $this->age;
         return $age >= 5 && $age <= 18;
     }
+
+    public function sponsorships()
+    {
+        return $this->hasMany(Sponsorship::class);
+    }
 }
