@@ -39,6 +39,14 @@ class OrphanController extends Controller
         $orphans = $query->orderBy('created_at', 'desc')
             ->paginate($request->get('per_page', 15));
 
+        if ($orphans->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Aucun orphelin trouvé avec les critères spécifiés.',
+                'data' => []
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $orphans,

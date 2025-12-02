@@ -19,9 +19,11 @@ return new class extends Migration
             $table->string('city');
             $table->string('region')->nullable();
             $table->integer('orphans_count')->default(0)->nullable();
+            $table->string('needs')->nullable();
             $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
             $table->date('registration_date');
             $table->text('notes')->nullable();
+            $table->decimal('total_needs', 12, 2)->default(0)->nullable();
             $table->decimal('total_received', 12, 2)->default(0)->nullable();
             $table->timestamps();
             $table->softDeletes();

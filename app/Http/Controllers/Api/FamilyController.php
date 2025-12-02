@@ -40,8 +40,8 @@ class FamilyController extends Controller
             });
         }
 
-        $families = $query->orderBy('created_at', 'desc')
-            ->paginate($request->get('per_page', 15));
+        $families = $query->whereNull('deleted_at')->orderBy('created_at', 'desc')
+            ->paginate($request->get('per_page', 25));
 
         return response()->json([
             'success' => true,
@@ -64,6 +64,9 @@ class FamilyController extends Controller
             'status' => 'nullable|in:active,inactive,pending',
             'registration_date' => 'nullable|date',
             'notes' => 'nullable|string',
+            'needs' => 'nullable|string',
+            'total_needs' => 'nullable|numeric|min:0',
+            'total_received' => 'nullable|numeric|min:0',
         ]);
 
         $data = $request->all();
@@ -105,6 +108,9 @@ class FamilyController extends Controller
             'orphans_count' => 'sometimes|integer|min:0',
             'status' => 'sometimes|in:active,inactive,pending',
             'notes' => 'nullable|string',
+            'needs' => 'nullable|string',
+            'total_needs' => 'nullable|numeric|min:0',
+            'total_received' => 'nullable|numeric|min:0',
         ]);
 
         $family->update($request->all());
@@ -145,7 +151,7 @@ class FamilyController extends Controller
             'active_families' => Family::active()->count(),
             'pending_families' => Family::pending()->count(),
             'total_orphans' => Family::sum('orphans_count'),
-            'total_received' => Family::sum('total_received'),
+            'total_needs' => Family::sum('total_needs'),
             'families_with_sponsorships' => Family::whereHas('sponsorships', function($q) {
                 $q->where('status', 'active');
             })->count(),
