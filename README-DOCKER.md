@@ -43,6 +43,10 @@ This project is set up with Docker and includes the following services:
    docker-compose exec app npm install
    docker-compose exec app npm run dev
    ```
+7. link storage
+   ```bash
+   docker-compose exec app php artisan storage:link
+   ```
 
 ## Accessing the Application
 

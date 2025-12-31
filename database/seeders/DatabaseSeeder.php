@@ -16,7 +16,9 @@ class DatabaseSeeder extends Seeder
             CategoriesTableSeeder::class,
             FamilySeeder::class,
             OrphanSeeder::class,
-            SponsorshipSeeder::class, // Add this line
+            SponsorshipSeeder::class,
+            CampaignsSeeder::class,
+
         ]);
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('donor_name')->nullable(); // Pour les dons anonymes
             $table->string('donor_email')->nullable();
             $table->string('donor_phone')->nullable();
-            $table->enum('payment_method', ['card', 'bank_transfer', 'mobile_money', 'cash'])->default('card');
+            $table->enum('payment_method', ['cash', 'orange_money', 'mobile_money', 'cash'])->default('mobile_money');
             $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
             $table->boolean('is_anonymous')->default(false);
             $table->boolean('is_recurring')->default(false);

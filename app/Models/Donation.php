@@ -23,6 +23,9 @@ class Donation extends Model
         'is_recurring',
         'message',
         'payment_date',
+        'payment_type',
+        'payable_type',
+        'payable_id',
     ];
 
     protected $casts = [
@@ -42,15 +45,6 @@ class Donation extends Model
                 $donation->transaction_id = 'TXN-' . strtoupper(uniqid());
             }
         });
-
-        // Mettre à jour le montant de la campagne quand le don est complété
-        static::updated(function ($donation) {
-            if ($donation->status === 'completed' && $donation->campaign_id) {
-                $campaign = $donation->campaign;
-                $campaign->current_amount += $donation->amount;
-                $campaign->save();
-            }
-        });
     }
 
     // Relations
@@ -62,6 +56,14 @@ class Donation extends Model
     public function campaign()
     {
         return $this->belongsTo(Campaign::class);
+    }
+
+    /**
+     * Get the owning payable model (Campaign, Family, or Orphan).
+     */
+    public function payable()
+    {
+        return $this->morphTo();
     }
 
     // Scopes
@@ -90,6 +92,21 @@ class Donation extends Model
         return $query->where('is_anonymous', true);
     }
 
+    public function scopeCampaignDonation($query)
+    {
+        return $query->where('payment_type', 'campaign_donation');
+    }
+
+    public function scopeFamilySponsorship($query)
+    {
+        return $query->where('payment_type', 'family_sponsorship');
+    }
+
+    public function scopeOrphanSponsorship($query)
+    {
+        return $query->where('payment_type', 'orphan_sponsorship');
+    }
+
     // Accessors
     public function getDonorDisplayNameAttribute()
     {
@@ -103,3 +120,4 @@ class Donation extends Model
     {
         return $this->status === 'completed';
     }
+}

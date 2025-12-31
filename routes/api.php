@@ -19,6 +19,10 @@ use App\Http\Controllers\Api\DashboardController;
 */
 
 // Routes publiques
+Route::post('webhooks/notchpay', [DonationController::class, 'handleWebhook']);
+Route::get('donations/callback', [DonationController::class, 'callback'])->name('api.donations.callback');
+Route::get('sponsorships/callback', [SponsorshipController::class, 'callback'])->name('api.sponsorships.callback');
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use App\Models\Donation;
+use App\Models\Disbursement;
 
 class Campaign extends Model
 {
@@ -35,6 +37,8 @@ class Campaign extends Model
         'is_featured' => 'boolean',
         'beneficiaries_count' => 'integer',
     ];
+
+    protected $appends = ['image_url'];
 
     // Boot method
     protected static function boot()
@@ -106,5 +110,15 @@ class Campaign extends Model
     {
         if ($this->is_expired) return 0;
         return now()->diffInDays($this->end_date);
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image) {
+            return null;
+        }
+        return filter_var($this->image, FILTER_VALIDATE_URL) 
+            ? $this->image 
+            : asset('storage/' . $this->image);
     }
 }
