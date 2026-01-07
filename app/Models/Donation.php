@@ -22,10 +22,7 @@ class Donation extends Model
         'is_anonymous',
         'is_recurring',
         'message',
-        'payment_date',
-        'payment_type',
-        'payable_type',
-        'payable_id',
+        'payment_date'
     ];
 
     protected $casts = [

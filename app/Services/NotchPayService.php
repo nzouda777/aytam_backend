@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use NotchPay\Facades\NotchPay;
+use NotchPay\NotchPay;
+use NotchPay\Payment;
 use Illuminate\Http\Request;
 use App\Models\Donation;
 use App\Models\Campaign;
@@ -23,11 +24,12 @@ class NotchPayService
     public function initializeCampaignDonation(Donation $donation, ?Campaign $campaign = null)
     {
         $payload = [
-            'amount' => $donation->amount,
+            'amount' => (int) $donation->amount,
             'email' => $donation->donor_email ?? 'customer@example.com',
             'currency' => 'XAF',
             'reference' => $donation->transaction_id,
-            'callback' => route('api.donations.callback'),
+            'channel' => 'mobile_money',
+            'callback' => "http://127.0.0.1:3000",
             'description' => 'Donation for Campaign: ' . ($campaign?->title ?? 'General Fund'),
         ];
 
@@ -114,17 +116,37 @@ class NotchPayService
      */
     protected function processPaymentInitialization(array $payload, Donation $donation)
     {
-        $response = NotchPay::payment()->initialize($payload);
+        try {
+            NotchPay::setApiKey(env('NOTCHPAY_PUBLIC_KEY'));
+            
+            \Illuminate\Support\Facades\Log::info('NotchPay Initialization Payload', $payload);
+            
+            $response = Payment::initialize($payload);
+            
+            \Illuminate\Support\Facades\Log::info('NotchPay Initialization Response', [
+                'transaction_id' => $donation->transaction_id,
+                'response' => (array) $response
+            ]);
 
-        if ($response->status === 'accepted' || $response->status === 'created') {
-            return [
-                'success' => true,
-                'authorization_url' => $response->authorization_url,
-                'reference' => $donation->transaction_id
-            ];
+            $status = isset($response->status) ? strtolower($response->status) : null;
+
+            if ($status === 'accepted' || $status === 'created') {
+                return [
+                    'success' => true,
+                    'authorization_url' => $response->authorization_url,
+                    'reference' => $donation->transaction_id
+                ];
+            }
+
+            throw new \Exception($response->message ?? 'Failed to initialize payment');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('NotchPay Initialization Error', [
+                'transaction_id' => $donation->transaction_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-
-        throw new \Exception($response->message ?? 'Failed to initialize payment');
     }
 
     /**
@@ -135,7 +157,7 @@ class NotchPayService
      */
     public function verifyPayment(string $reference)
     {
-        return NotchPay::payment()->verify($reference);
+        return Payment::verify($reference);
     }
 
     /**
@@ -159,7 +181,7 @@ class NotchPayService
         }
 
         if ($event === 'payment.complete') {
-            return $this->handleSuccessfulPayment($donation, $data);
+            return $this->completeDonation($donation, $data);
         } elseif ($event === 'payment.failed') {
             $donation->update(['status' => 'failed']);
             return true;
@@ -169,13 +191,13 @@ class NotchPayService
     }
 
     /**
-     * Handle successful payment based on payment type.
+     * Complete the donation process.
      *
      * @param Donation $donation
      * @param array $data
      * @return bool
      */
-    protected function handleSuccessfulPayment(Donation $donation, array $data)
+    public function completeDonation(Donation $donation, array $data = [])
     {
         if ($donation->status === 'completed') {
             return true; // Already processed
@@ -184,7 +206,7 @@ class NotchPayService
         $donation->update([
             'status' => 'completed',
             'payment_date' => now(),
-            'payment_method' => $data['method'] ?? $donation->payment_method,
+            'payment_method' => $data['method'] ?? 'notch_pay', // Default to generic if unknown
         ]);
 
         // Handle based on payment type

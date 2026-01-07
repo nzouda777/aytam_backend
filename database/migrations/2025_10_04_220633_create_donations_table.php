@@ -10,14 +10,13 @@ return new class extends Migration
     {
         Schema::create('donations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('campaign_id')->nullable()->constrained()->onDelete('set null');
             $table->string('transaction_id')->unique();
             $table->decimal('amount', 12, 2);
             $table->string('donor_name')->nullable(); // Pour les dons anonymes
             $table->string('donor_email')->nullable();
             $table->string('donor_phone')->nullable();
-            $table->enum('payment_method', ['cash', 'orange_money', 'mobile_money', 'cash'])->default('mobile_money');
+            $table->enum('payment_method', ['cash', 'orange_money', 'mobile_money'])->default('mobile_money');
             $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
             $table->boolean('is_anonymous')->default(false);
             $table->boolean('is_recurring')->default(false);

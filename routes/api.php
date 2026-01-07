@@ -44,6 +44,16 @@ Route::prefix('campaigns')->group(function () {
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{id}', [CategoryController::class, 'show']);
 Route::get('categories/{id}/campaigns', [CategoryController::class, 'campaigns']);
+    // Dons public
+    Route::prefix('donations')->group(function () {
+        Route::get('/', [DonationController::class, 'index']);
+        Route::post('/', [DonationController::class, 'store']);
+        Route::get('/statistics', [DonationController::class, 'statistics']);
+        Route::get('/my-donations', [DonationController::class, 'userDonations']);
+        Route::get('/campaign/{campaignId}', [DonationController::class, 'campaignDonations']);
+        Route::get('/{id}', [DonationController::class, 'show']);
+        Route::patch('/{id}/status', [DonationController::class, 'updateStatus']);
+    });
 
 // Routes protégées (nécessite authentification)
 Route::middleware('auth:sanctum')->group(function () {
@@ -67,16 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/donor-stats', [DashboardController::class, 'donorStats']);
     });
 
-    // Dons
-    Route::prefix('donations')->group(function () {
-        Route::get('/', [DonationController::class, 'index']);
-        Route::post('/', [DonationController::class, 'store']);
-        Route::get('/statistics', [DonationController::class, 'statistics']);
-        Route::get('/my-donations', [DonationController::class, 'userDonations']);
-        Route::get('/campaign/{campaignId}', [DonationController::class, 'campaignDonations']);
-        Route::get('/{id}', [DonationController::class, 'show']);
-        Route::patch('/{id}/status', [DonationController::class, 'updateStatus']);
-    });
+
 
     // Parrainages
     Route::prefix('sponsorships')->group(function () {
