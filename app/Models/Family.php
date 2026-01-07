@@ -20,9 +20,11 @@ class Family extends Model
         'city',
         'region',
         'orphans_count',
+        'needs',
         'status',
         'registration_date',
         'notes',
+        'total_needs',
         'total_received',
     ];
 
@@ -30,6 +32,7 @@ class Family extends Model
         'widow_date_of_birth' => 'date',
         'registration_date' => 'date',
         'orphans_count' => 'integer',
+        'total_needs' => 'decimal:2',
         'total_received' => 'decimal:2',
     ];
 
@@ -58,7 +61,7 @@ class Family extends Model
 
     public function disbursements()
     {
-        return $this->hasMany(Disbursement::class);
+        return $this->hasMany(Disbursements::class);
     }
 
     // Scopes

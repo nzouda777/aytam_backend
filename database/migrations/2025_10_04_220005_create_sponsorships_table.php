@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Sponsor
             $table->foreignId('family_id')->constrained()->onDelete('cascade');
+            $table->foreignId('orphan_id')->constrained()->onDelete('cascade');
+            $table->string('name')->nullable();
             $table->decimal('monthly_amount', 10, 2);
             $table->date('start_date');
             $table->date('end_date')->nullable();

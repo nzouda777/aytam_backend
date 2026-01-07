@@ -16,17 +16,23 @@ class CheckRole
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!$request->user()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Non authentifié',
-            ], 401);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non authentifié',
+                ], 401);
+            }
+            return redirect('/auth/login');
         }
 
         if (!in_array($request->user()->role, $roles)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Accès non autorisé. Permissions insuffisantes.',
-            ], 403);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Accès non autorisé. Permissions insuffisantes.',
+                ], 403);
+            }
+            return redirect()->route('/')->with('error', 'Accès non autorisé. Permissions insuffisantes.');
         }
 
         return $next($request);

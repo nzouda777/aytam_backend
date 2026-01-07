@@ -13,6 +13,8 @@ class Sponsorship extends Model
     protected $fillable = [
         'user_id',
         'family_id',
+        'orphan_id',
+        'name',
         'monthly_amount',
         'start_date',
         'end_date',
@@ -92,4 +94,8 @@ class Sponsorship extends Model
                 return null;
         }
     }
+   public function orphan()
+   {
+       return $this->belongsTo(Orphan::class);
+   }
 }

@@ -6,11 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Donation;
 use App\Models\Campaign;
 use Illuminate\Http\Request;
+use App\Services\NotchPayService;
 
 class DonationController extends Controller
 {
+    protected $notchPayService;
+
+    public function __construct(NotchPayService $notchPayService)
+    {
+        $this->notchPayService = $notchPayService;
+    }
+
     public function index(Request $request)
     {
+        // ... (existing index code)
         $query = Donation::with(['user', 'campaign']);
 
         // Filtres
@@ -61,11 +70,12 @@ class DonationController extends Controller
     {
         $request->validate([
             'campaign_id' => 'nullable|exists:campaigns,id',
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric|min:100',
             'donor_name' => 'required_without:user_id|string|max:255',
-            'donor_email' => 'required_without:user_id|email|max:255',
+            'donor_email' => 'max:255',
             'donor_phone' => 'nullable|string|max:20',
-            'payment_method' => 'required|in:card,bank_transfer,mobile_money,cash',
+            'payment_method' => 'required|in:cash,orange_money,mobile_money',
+            // 'payment_type' => 'sometimes|in:campaign_donation,family_sponsorship,orphan_sponsorship',
             'is_anonymous' => 'sometimes|boolean',
             'is_recurring' => 'sometimes|boolean',
             'message' => 'nullable|string',
@@ -73,35 +83,104 @@ class DonationController extends Controller
 
         $data = $request->all();
         
-        // Si l'utilisateur est connecté
-        if ($request->user()) {
-            $data['user_id'] = $request->user()->id;
-            $data['donor_name'] = $request->user()->name;
-            $data['donor_email'] = $request->user()->email;
+            $data['donor_name'] = $request->donor_name ;
+            $data['donor_email'] = $request->donor_email;
+            $data['donor_phone'] = $request->donor_phone;
+        $data['campaign_id'] = $request->campaign_id;
+
+        // Generate unique reference
+        $data['transaction_id'] = 'REF-' . time() . '-' . uniqid();
+        $data['status'] = 'pending';
+        $data['payment_type'] = $request->input('payment_type', 'campaign_donation');
+
+        // Set polymorphic relationship based on payment type
+        if ($data['payment_type'] === 'campaign_donation' && isset($data['campaign_id'])) {
+            $data['payable_type'] = Campaign::class;
+            $data['payable_id'] = $data['campaign_id'];
         }
 
         // Créer le don avec statut pending
         $donation = Donation::create($data);
 
-        // TODO: Intégrer le traitement du paiement ici
-        // Pour l'instant, on simule un paiement réussi
-        $donation->update([
-            'status' => 'completed',
-            'payment_date' => now(),
-        ]);
+        try {
+            // Call appropriate service method based on payment type
+            $campaign = $donation->campaign_id ? Campaign::find($donation->campaign_id) : null;
+            $result = $this->notchPayService->initializeCampaignDonation($donation, $campaign);
+            // update campaign amount
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment initialized',
+                'data' => $donation,
+                'authorization_url' => $result['authorization_url'],
+                'reference' => $result['reference']
+            ], 201);
 
-        // Mettre à jour le montant de la campagne
-        if ($donation->campaign_id) {
-            $campaign = Campaign::find($donation->campaign_id);
-            $campaign->current_amount += $donation->amount;
-            $campaign->save();
+        } catch (\Exception $e) {
+            $donation->update(['status' => 'failed']);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment initialization error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle Notch Pay Webhook
+     */
+    public function handleWebhook(Request $request)
+    {
+        $event = $request->input('event');
+        $data = $request->input('data');
+        
+        if (!$data || !isset($data['reference'])) {
+            return response()->json(['status' => 'ignored'], 200);
+        }
+
+        $processed = $this->notchPayService->processWebhook($event, $data);
+
+        if (!$processed) {
+            return response()->json(['status' => 'not_found_or_ignored'], 404);
+        }
+
+        return response()->json(['status' => 'success']);
+    }
+
+    /**
+     * Callback handler (optional check)
+     */
+    public function callback(Request $request)
+    {
+        $reference = $request->query('reference');
+        
+        if (!$reference) {
+            return response()->json(['success' => false, 'message' => 'No reference provided'], 400);
+        }
+
+        $donation = Donation::where('transaction_id', $reference)->first();
+
+        if (!$donation) {
+            return response()->json(['success' => false, 'message' => 'Donation not found'], 404);
+        }
+
+        try {
+            $paymentMap = $this->notchPayService->verifyPayment($reference);
+            
+            if ($paymentMap->status === 'complete' || $paymentMap->status === 'accepted') {
+                 $this->notchPayService->completeDonation($donation, [
+                    'method' => 'notch_pay' // We could extract more info from $paymentMap if needed
+                 ]);
+            }
+        } catch (\Exception $e) {
+            // Ignore error
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Don effectué avec succès',
-            'data' => $donation->load(['campaign', 'user']),
-        ], 201);
+            'data' => $donation
+        ]);
     }
 
     public function show($id)

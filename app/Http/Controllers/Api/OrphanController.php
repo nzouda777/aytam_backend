@@ -37,7 +37,16 @@ class OrphanController extends Controller
         }
 
         $orphans = $query->orderBy('created_at', 'desc')
+            ->with('sponsorships')
             ->paginate($request->get('per_page', 15));
+
+        if ($orphans->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Aucun orphelin trouvé avec les critères spécifiés.',
+                'data' => []
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -83,7 +92,7 @@ class OrphanController extends Controller
 
     public function show($id)
     {
-        $orphan = Orphan::with('family')->findOrFail($id);
+        $orphan = Orphan::with(['family', 'sponsorships'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
