@@ -35,7 +35,7 @@ class CampaignController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $campaigns = $query->paginate($request->get('per_page', 15));
+        $campaigns = $query->get();
 
         return response()->json([
             'success' => true,

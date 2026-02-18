@@ -57,12 +57,11 @@ class DonationController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $donations = $query->orderBy('created_at', 'desc')
-            ->paginate($request->get('per_page', 15));
+        $donations = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'success' => true,
-            'data' => $donations,
+            'data' => $donations->toArray()
         ]);
     }
 
