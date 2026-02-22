@@ -22,7 +22,30 @@ use App\Http\Controllers\Api\DashboardController;
 Route::post('webhooks/notchpay', [DonationController::class, 'handleWebhook']);
 Route::get('donations/callback', [DonationController::class, 'callback'])->name('api.donations.callback');
 Route::get('sponsorships/callback', [SponsorshipController::class, 'callback'])->name('api.sponsorships.callback');
+   // Parrainages
+     // Familles
+        Route::prefix('families')->group(function () {
+            Route::get('/', [FamilyController::class, 'index']);
+            Route::post('/', [FamilyController::class, 'store']);
+            Route::get('/statistics', [FamilyController::class, 'statistics']);
+            Route::get('/{id}', [FamilyController::class, 'show']);
+            Route::put('/{id}', [FamilyController::class, 'update']);
+            Route::delete('/{id}', [FamilyController::class, 'destroy']);
+            Route::get('/{id}/orphans', [FamilyController::class, 'orphans']);
+            Route::patch('/{id}/status', [FamilyController::class, 'updateStatus']);
+        });
 
+        // Orphelins
+        Route::prefix('orphans')->group(function () {
+            Route::get('/', [OrphanController::class, 'index']);
+            Route::post('/', [OrphanController::class, 'store']);
+            Route::get('/sponsored', [OrphanController::class, 'sponsored']);
+            Route::get('/unsponsored', [OrphanController::class, 'unsponsored']);
+            Route::get('/statistics', [OrphanController::class, 'statistics']);
+            Route::get('/{id}', [OrphanController::class, 'show']);
+            Route::put('/{id}', [OrphanController::class, 'update']);
+            Route::delete('/{id}', [OrphanController::class, 'destroy']);
+        });
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -38,6 +61,15 @@ Route::prefix('campaigns')->group(function () {
     Route::get('/active', [CampaignController::class, 'active']);
     Route::get('/urgent', [CampaignController::class, 'urgent']);
     Route::get('/{id}', [CampaignController::class, 'show']);
+});
+
+Route::get('beneficiaries', [SponsorshipController::class, 'getBeneficiaries']);
+Route::prefix('sponsorships')->group(function () {
+    Route::get('/', [SponsorshipController::class, 'index']);
+    Route::post('/', [SponsorshipController::class, 'store']);
+    Route::get('/{id}', [SponsorshipController::class, 'show']);
+    Route::put('/{id}', [SponsorshipController::class, 'update']);
+    Route::delete('/{id}', [SponsorshipController::class, 'destroy']);
 });
 
 // Catégories publiques
@@ -81,14 +113,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Parrainages
     Route::prefix('sponsorships')->group(function () {
-        Route::get('/', [SponsorshipController::class, 'index']);
-        Route::post('/', [SponsorshipController::class, 'store']);
+        // Route::get('/', [SponsorshipController::class, 'index']);
+        // Route::post('/', [SponsorshipController::class, 'store']);
         Route::get('/active', [SponsorshipController::class, 'active']);
         Route::get('/statistics', [SponsorshipController::class, 'statistics']);
         Route::get('/my-sponsorships', [SponsorshipController::class, 'userSponsorships']);
         Route::get('/family/{familyId}', [SponsorshipController::class, 'familySponsorships']);
-        Route::get('/{id}', [SponsorshipController::class, 'show']);
-        Route::put('/{id}', [SponsorshipController::class, 'update']);
+        // Route::get('/{id}', [SponsorshipController::class, 'show']);
+        // Route::put('/{id}', [SponsorshipController::class, 'update']);
         Route::delete('/{id}', [SponsorshipController::class, 'destroy']);
         Route::patch('/{id}/status', [SponsorshipController::class, 'updateStatus']);
     });
@@ -110,29 +142,29 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{id}', [CategoryController::class, 'destroy']);
         });
 
-        // Familles
-        Route::prefix('families')->group(function () {
-            Route::get('/', [FamilyController::class, 'index']);
-            Route::post('/', [FamilyController::class, 'store']);
-            Route::get('/statistics', [FamilyController::class, 'statistics']);
-            Route::get('/{id}', [FamilyController::class, 'show']);
-            Route::put('/{id}', [FamilyController::class, 'update']);
-            Route::delete('/{id}', [FamilyController::class, 'destroy']);
-            Route::get('/{id}/orphans', [FamilyController::class, 'orphans']);
-            Route::patch('/{id}/status', [FamilyController::class, 'updateStatus']);
-        });
+        // // Familles
+        // Route::prefix('families')->group(function () {
+        //     Route::get('/', [FamilyController::class, 'index']);
+        //     Route::post('/', [FamilyController::class, 'store']);
+        //     Route::get('/statistics', [FamilyController::class, 'statistics']);
+        //     Route::get('/{id}', [FamilyController::class, 'show']);
+        //     Route::put('/{id}', [FamilyController::class, 'update']);
+        //     Route::delete('/{id}', [FamilyController::class, 'destroy']);
+        //     Route::get('/{id}/orphans', [FamilyController::class, 'orphans']);
+        //     Route::patch('/{id}/status', [FamilyController::class, 'updateStatus']);
+        // });
 
-        // Orphelins
-        Route::prefix('orphans')->group(function () {
-            Route::get('/', [OrphanController::class, 'index']);
-            Route::post('/', [OrphanController::class, 'store']);
-            Route::get('/sponsored', [OrphanController::class, 'sponsored']);
-            Route::get('/unsponsored', [OrphanController::class, 'unsponsored']);
-            Route::get('/statistics', [OrphanController::class, 'statistics']);
-            Route::get('/{id}', [OrphanController::class, 'show']);
-            Route::put('/{id}', [OrphanController::class, 'update']);
-            Route::delete('/{id}', [OrphanController::class, 'destroy']);
-        });
+        // // Orphelins
+        // Route::prefix('orphans')->group(function () {
+        //     Route::get('/', [OrphanController::class, 'index']);
+        //     Route::post('/', [OrphanController::class, 'store']);
+        //     Route::get('/sponsored', [OrphanController::class, 'sponsored']);
+        //     Route::get('/unsponsored', [OrphanController::class, 'unsponsored']);
+        //     Route::get('/statistics', [OrphanController::class, 'statistics']);
+        //     Route::get('/{id}', [OrphanController::class, 'show']);
+        //     Route::put('/{id}', [OrphanController::class, 'update']);
+        //     Route::delete('/{id}', [OrphanController::class, 'destroy']);
+        // });
 
         // Décaissements
         Route::prefix('disbursements')->group(function () {

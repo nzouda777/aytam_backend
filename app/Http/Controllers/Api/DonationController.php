@@ -71,7 +71,7 @@ class DonationController extends Controller
             'campaign_id' => 'nullable|exists:campaigns,id',
             'amount' => 'required|numeric|min:100',
             'donor_name' => 'required_without:user_id|string|max:255',
-            'donor_email' => 'max:255',
+            'donor_email' => 'nullable|email|max:255',
             'donor_phone' => 'nullable|string|max:20',
             'payment_method' => 'required|in:cash,orange_money,mobile_money',
             // 'payment_type' => 'sometimes|in:campaign_donation,family_sponsorship,orphan_sponsorship',

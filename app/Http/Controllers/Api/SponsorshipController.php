@@ -52,8 +52,9 @@ class SponsorshipController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'family_id' => 'required_without:orphan_id|exists:families,id',
-            'orphan_id' => 'required_without:family_id|exists:orphans,id',
+            'sponsorship_type' => 'required|in:orphan,widow,family',
+            'family_id' => 'required_if:sponsorship_type,widow,family|exists:families,id',
+            'orphan_id' => 'required_if:sponsorship_type,orphan|exists:orphans,id',
             'monthly_amount' => 'required|numeric|min:100',
             'name' => 'nullable|string|max:255',
             'start_date' => 'required|date',
@@ -66,26 +67,68 @@ class SponsorshipController extends Controller
         ]);
 
         $user = $request->user();
+        $sponsorshipType = $request->sponsorship_type;
 
-        // Create pending sponsorship
+        // Determine payment_type, payable_type, and payable_id based on sponsorship type
+        switch ($sponsorshipType) {
+            case 'orphan':
+                $paymentType = 'orphan_sponsorship';
+                $payableType = Orphan::class;
+                $payableId = $request->orphan_id;
+                $beneficiary = Orphan::findOrFail($request->orphan_id);
+                break;
+            case 'widow':
+                $paymentType = 'widow_sponsorship';
+                $payableType = Family::class;
+                $payableId = $request->family_id;
+                $beneficiary = Family::findOrFail($request->family_id);
+                break;
+            case 'family':
+            default:
+                $paymentType = 'family_sponsorship';
+                $payableType = Family::class;
+                $payableId = $request->family_id;
+                $beneficiary = Family::findOrFail($request->family_id);
+                break;
+        }
+
+        // Create pending sponsorship with the beneficiary's ID in user_id
         $sponsorshipData = [
-            'user_id' => $user->id,
-            'family_id' => $request->family_id,
-            'orphan_id' => $request->orphan_id,
+            'user_id' => $payableId,
+            'sponsorship_type' => $sponsorshipType,
+            'family_id' => in_array($sponsorshipType, ['widow', 'family']) ? $request->family_id : null,
+            'orphan_id' => $sponsorshipType === 'orphan' ? $request->orphan_id : null,
             'monthly_amount' => $request->monthly_amount,
             'name' => $request->name,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'payment_frequency' => $request->payment_frequency,
             'notes' => $request->notes,
-            'status' => 'pending', // Will be activated after payment
+            'status' => 'pending',
         ];
 
         $sponsorship = Sponsorship::create($sponsorshipData);
 
-        // Create donation record for the payment
+        // Create pending sponsorship with the beneficiary's ID in user_id
+        $sponsorshipData = [
+            'user_id' => $payableId,
+            'sponsorship_type' => $sponsorshipType,
+            'family_id' => in_array($sponsorshipType, ['widow', 'family']) ? $request->family_id : null,
+            'orphan_id' => $sponsorshipType === 'orphan' ? $request->orphan_id : null,
+            'monthly_amount' => $request->monthly_amount,
+            'name' => $request->name,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'payment_frequency' => $request->payment_frequency,
+            'notes' => $request->notes,
+            'status' => 'pending',
+        ];
+
+        $sponsorship = Sponsorship::create($sponsorshipData);
+
+        // Create donation record for the payment with the beneficiary's ID in user_id
         $donationData = [
-            'user_id' => $user->id,
+            'user_id' => $payableId,
             'amount' => $request->monthly_amount,
             'donor_name' => $request->donor_name ?? $user->name,
             'donor_email' => $request->donor_email ?? $user->email,
@@ -93,21 +136,26 @@ class SponsorshipController extends Controller
             'payment_method' => 'mobile_money',
             'status' => 'pending',
             'transaction_id' => 'REF-' . time() . '-' . uniqid(),
-            'payment_type' => $request->family_id ? 'family_sponsorship' : 'orphan_sponsorship',
-            'payable_type' => $request->family_id ? Family::class : Orphan::class,
-            'payable_id' => $request->family_id ?? $request->orphan_id,
+            'payment_type' => $paymentType,
+            'payable_type' => $payableType,
+            'payable_id' => $payableId,
         ];
 
         $donation = Donation::create($donationData);
 
         try {
             // Initialize payment based on sponsorship type
-            if ($request->family_id) {
-                $family = Family::find($request->family_id);
-                $result = $this->notchPayService->initializeFamilySponsorship($donation, $family, $sponsorship);
-            } else {
-                $orphan = Orphan::find($request->orphan_id);
-                $result = $this->notchPayService->initializeOrphanSponsorship($donation, $orphan, $sponsorship);
+            switch ($sponsorshipType) {
+                case 'orphan':
+                    $result = $this->notchPayService->initializeOrphanSponsorship($donation, $beneficiary, $sponsorship);
+                    break;
+                case 'widow':
+                    $result = $this->notchPayService->initializeWidowSponsorship($donation, $beneficiary, $sponsorship);
+                    break;
+                case 'family':
+                default:
+                    $result = $this->notchPayService->initializeFamilySponsorship($donation, $beneficiary, $sponsorship);
+                    break;
             }
 
             return response()->json([
@@ -292,6 +340,18 @@ class SponsorshipController extends Controller
             'success' => true,
             'data' => $donation,
             'sponsorship_status' => $donation->status === 'completed' ? 'active' : 'pending'
+        ]);
+    }
+
+    // get All beneficiaries
+
+    public function getBeneficiaries()
+    {
+        $beneficiaries = Sponsorship::with(['family', 'orphan'])->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $beneficiaries,
         ]);
     }
 }

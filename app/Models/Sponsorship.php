@@ -12,6 +12,7 @@ class Sponsorship extends Model
 
     protected $fillable = [
         'user_id',
+        'sponsorship_type',
         'family_id',
         'orphan_id',
         'name',

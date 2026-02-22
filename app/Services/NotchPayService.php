@@ -29,7 +29,7 @@ class NotchPayService
             'currency' => 'XAF',
             'reference' => $donation->transaction_id,
             'channel' => 'mobile_money',
-            'callback' => "http://127.0.0.1:3000",
+            'callback' => "http://192.168.1.115:8081",
             'description' => 'Donation for Campaign: ' . ($campaign?->title ?? 'General Fund'),
         ];
 
@@ -93,6 +93,37 @@ class NotchPayService
             'reference' => $donation->transaction_id,
             'callback' => route('api.sponsorships.callback'),
             'description' => "Orphan Sponsorship: {$orphan->full_name} - {$sponsorship->payment_frequency}",
+        ];
+
+        if ($donation->donor_name) {
+            $payload['name'] = $donation->donor_name;
+        }
+
+        if ($donation->donor_phone) {
+            $payload['phone'] = $donation->donor_phone;
+        }
+
+        return $this->processPaymentInitialization($payload, $donation);
+    }
+
+    /**
+     * Initialize a widow sponsorship payment.
+     *
+     * @param Donation $donation
+     * @param Family $family
+     * @param Sponsorship $sponsorship
+     * @return array
+     * @throws \Exception
+     */
+    public function initializeWidowSponsorship(Donation $donation, Family $family, Sponsorship $sponsorship)
+    {
+        $payload = [
+            'amount' => $donation->amount,
+            'email' => $donation->donor_email ?? 'customer@example.com',
+            'currency' => 'XAF',
+            'reference' => $donation->transaction_id,
+            'callback' => route('api.sponsorships.callback'),
+            'description' => "Widow Sponsorship: {$family->widow_name} ({$family->family_code}) - {$sponsorship->payment_frequency}",
         ];
 
         if ($donation->donor_name) {
@@ -222,6 +253,10 @@ class NotchPayService
             case 'orphan_sponsorship':
                 $this->activateOrphanSponsorship($donation);
                 break;
+
+            case 'widow_sponsorship':
+                $this->activateWidowSponsorship($donation);
+                break;
         }
 
         return true;
@@ -292,6 +327,33 @@ class NotchPayService
             // Mark orphan as sponsored
             $orphan->is_sponsored = true;
             $orphan->save();
+        }
+    }
+
+    /**
+     * Activate widow sponsorship after successful payment.
+     *
+     * @param Donation $donation
+     */
+    protected function activateWidowSponsorship(Donation $donation)
+    {
+        $family = $donation->payable;
+        
+        if ($family && $family instanceof Family) {
+            // Find the associated widow sponsorship
+            $sponsorship = Sponsorship::where('family_id', $family->id)
+                ->where('user_id', $donation->user_id)
+                ->where('sponsorship_type', 'widow')
+                ->where('status', 'pending')
+                ->first();
+            
+            if ($sponsorship) {
+                $sponsorship->update(['status' => 'active']);
+            }
+
+            // Update family's total received
+            $family->total_received += $donation->amount;
+            $family->save();
         }
     }
 }
