@@ -15,6 +15,7 @@ class Family extends Model
         'widow_name',
         'widow_phone',
         'widow_email',
+        'widow_photo',
         'widow_date_of_birth',
         'address',
         'city',

@@ -53,12 +53,29 @@ services:
       MYSQL_USER: master
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-proot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - dbdata:/var/lib/mysql/
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - laravel_network
-
+  # NodeJS Service
+  nodejs:
+    image: node:18-alpine
+    container_name: nodejs
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel_network
+    
   # phpMyAdmin Service
   phpmyadmin:
     image: phpmyadmin:latest
@@ -81,7 +98,6 @@ services:
       - "8080:80"
     networks:
       - laravel_network
-
 
 # Docker Networks
 networks:

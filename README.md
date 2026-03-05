@@ -730,3 +730,5 @@ Content-Type: application/json
 ## 🔒 Permissions
 
 ### R
+
+analyse le projet et construit le back offfice avec filament php pour administrer tout (gestion des veuves et orphelins (ajoute aussi la fonctionnalite d'ajout de l'image pour un orphelin ou une veuve), gestions des dons, gestions des sponsorisations, tableau de bord, gestion des utilisateurs et role (je veux les roles: admin et super admin avec la gestion des niveaux d'acces ou d'operation qu'il peuvent effectuer))
