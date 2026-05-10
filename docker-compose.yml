@@ -13,9 +13,9 @@ services:
     environment:
       SERVICE_NAME: app
       SERVICE_TAGS: dev
-    working_dir: /var/www/
+    working_dir: /var/www/html
     volumes:
-      - ./:/var/www
+      - ./:/var/www/html
     networks:
       - laravel_network
 
@@ -66,12 +66,12 @@ services:
     image: node:18-alpine
     container_name: vite_dev
     restart: unless-stopped
-    working_dir: /var/www
+    working_dir: /var/www/html
     ports:
       - "5173:5173"
     volumes:
-      - ./:/var/www
-      - /var/www/node_modules
+      - ./:/var/www/html
+      - /var/www/html/node_modules
     command: npm run dev
     networks:
       - laravel_network
