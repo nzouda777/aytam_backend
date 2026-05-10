@@ -31,6 +31,19 @@ class CampaignResource extends Resource
 
     protected static ?int $navigationSort = 0;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'slug'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Objectif' => number_format($record->goal_amount, 0, ',', ' ') . ' FCFA',
+            'Statut' => $record->status,
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form

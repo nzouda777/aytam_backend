@@ -11,7 +11,9 @@ class SponsorshipsChart extends ChartWidget
 {
     protected static ?string $heading = 'Répartition des Parrainages';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
+
+    protected int | string | array $columnSpan = 1;
 
     protected function getData(): array
     {

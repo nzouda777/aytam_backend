@@ -27,6 +27,25 @@ class DonationResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['transaction_id', 'donor_name', 'donor_email'];
+    }
+
+    public static function getGlobalSearchResultTitle(\Illuminate\Database\Eloquent\Model $record): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return "Don de " . ($record->is_anonymous ? "Anonyme" : ($record->donor_name ?? $record->user?->name ?? 'N/A'));
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Transaction' => $record->transaction_id,
+            'Montant' => number_format($record->amount, 0, ',', ' ') . ' FCFA',
+            'Date' => $record->payment_date?->format('d/m/Y'),
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form

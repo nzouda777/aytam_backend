@@ -28,6 +28,24 @@ class OrphanResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['first_name', 'last_name', 'family.widow_name'];
+    }
+
+    public static function getGlobalSearchResultTitle(\Illuminate\Database\Eloquent\Model $record): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return $record->full_name;
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Famille' => $record->family->widow_name,
+            'Sexe' => $record->gender === 'male' ? 'Masculin' : 'Féminin',
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form

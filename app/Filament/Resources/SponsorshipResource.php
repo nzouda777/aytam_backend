@@ -28,6 +28,31 @@ class SponsorshipResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'family.widow_name', 'orphan.first_name'];
+    }
+
+    public static function getGlobalSearchResultTitle(\Illuminate\Database\Eloquent\Model $record): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return "Parrainage de " . ($record->name ?? $record->user?->name ?? 'N/A');
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        $details = [
+            'Type' => $record->sponsorship_type === 'orphan' ? 'Orphelin' : 'Famille',
+        ];
+
+        if ($record->sponsorship_type === 'orphan' && $record->orphan) {
+            $details['Bénéficiaire'] = $record->orphan->full_name;
+        } elseif ($record->sponsorship_type === 'family' && $record->family) {
+            $details['Bénéficiaire'] = $record->family->widow_name;
+        }
+
+        return $details;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

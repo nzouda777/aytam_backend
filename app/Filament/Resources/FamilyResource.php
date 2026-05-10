@@ -29,6 +29,24 @@ class FamilyResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['widow_name', 'family_code', 'city'];
+    }
+
+    public static function getGlobalSearchResultTitle(\Illuminate\Database\Eloquent\Model $record): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return $record->widow_name . ' (' . $record->family_code . ')';
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Ville' => $record->city,
+            'Orphelins' => $record->orphans_count,
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -135,6 +153,10 @@ class FamilyResource extends Resource
                     ->copyable(),
                 Tables\Columns\TextColumn::make('widow_name')
                     ->label('Nom de la veuve')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('widow_phone')
+                    ->label('Téléphone')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('city')
