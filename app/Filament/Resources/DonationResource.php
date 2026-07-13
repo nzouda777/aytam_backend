@@ -153,6 +153,11 @@ class DonationResource extends Resource
                     ->searchable()
                     ->limit(25)
                     ->tooltip(fn ($record) => $record->campaign?->title),
+                Tables\Columns\TextColumn::make('program.title')
+                    ->label('Programme')
+                    ->limit(25)
+                    ->toggleable()
+                    ->tooltip(fn ($record) => $record->program?->title),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Montant')
                     ->numeric(decimalPlaces: 0)
@@ -204,6 +209,28 @@ class DonationResource extends Resource
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->groups([
+                Tables\Grouping\Group::make('campaign.category_id')
+                    ->label('Catégorie')
+                    ->getTitleFromRecordUsing(fn ($record) => $record->campaign?->category?->name ?? 'Sans catégorie'),
+                Tables\Grouping\Group::make('program_id')
+                    ->label('Programme')
+                    ->getTitleFromRecordUsing(fn ($record) => $record->program?->title ?? 'Hors programme'),
+                Tables\Grouping\Group::make('payment_type')
+                    ->label('Type de don')
+                    ->getTitleFromRecordUsing(fn ($record) => match ($record->payment_type) {
+                        'campaign_donation' => 'Don à une campagne',
+                        'program_donation' => 'Don à un programme',
+                        'family_sponsorship' => 'Parrainage de famille',
+                        'orphan_sponsorship' => 'Parrainage d\'orphelin',
+                        default => $record->payment_type,
+                    }),
+                Tables\Grouping\Group::make('created_at')
+                    ->label('Mois')
+                    ->date()
+                    ->getTitleFromRecordUsing(fn ($record) => $record->created_at->translatedFormat('F Y'))
+                    ->getKeyFromRecordUsing(fn ($record) => $record->created_at->format('Y-m')),
+            ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Statut')
@@ -226,6 +253,26 @@ class DonationResource extends Resource
                     ->relationship('campaign', 'title')
                     ->searchable()
                     ->preload(),
+                Tables\Filters\SelectFilter::make('program_id')
+                    ->label('Programme')
+                    ->options(fn () => \App\Models\Program::all()->pluck('title', 'id')),
+                Tables\Filters\SelectFilter::make('category')
+                    ->label('Catégorie')
+                    ->options(fn () => \App\Models\Category::all()->pluck('name', 'id'))
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'],
+                            fn (Builder $q, $categoryId) => $q->whereHas('campaign', fn (Builder $c) => $c->where('category_id', $categoryId))
+                        );
+                    }),
+                Tables\Filters\SelectFilter::make('payment_type')
+                    ->label('Type de don')
+                    ->options([
+                        'campaign_donation' => 'Don à une campagne',
+                        'program_donation' => 'Don à un programme',
+                        'family_sponsorship' => 'Parrainage de famille',
+                        'orphan_sponsorship' => 'Parrainage d\'orphelin',
+                    ]),
                 Tables\Filters\TernaryFilter::make('is_recurring')
                     ->label('Récurrent'),
                 Tables\Filters\TernaryFilter::make('is_anonymous')

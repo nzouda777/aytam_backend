@@ -12,6 +12,8 @@ class Donation extends Model
     protected $fillable = [
         'user_id',
         'campaign_id',
+        'program_id',
+        'payment_type',
         'transaction_id',
         'amount',
         'donor_name',
@@ -48,6 +50,11 @@ class Donation extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
     }
 
     public function campaign()

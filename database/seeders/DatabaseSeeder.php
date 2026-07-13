@@ -18,7 +18,9 @@ class DatabaseSeeder extends Seeder
             OrphanSeeder::class,
             SponsorshipSeeder::class,
             CampaignsSeeder::class,
-
+            PostSeeder::class,
+            TestimonialSeeder::class,
+            ProgramSeeder::class,
         ]);
     }
 }

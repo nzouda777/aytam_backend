@@ -186,6 +186,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::fallback(function () {
     return response()->json([
         'success' => false,
-        'message' => 'Route non trouvée',
+        'message' => __('api.route_not_found'),
     ], 404);
 });

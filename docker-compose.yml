@@ -61,18 +61,21 @@ services:
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - laravel_network
-  # Vite Service
+  # Vite Service (dev uniquement : démarrer avec `docker compose --profile dev up`).
+  # Sans lui, l'app sert les assets buildés de public/build (npm run build).
   vite:
-    image: node:18-alpine
+    image: node:20-alpine
     container_name: vite_dev
     restart: unless-stopped
+    profiles:
+      - dev
     working_dir: /var/www/html
     ports:
       - "5173:5173"
     volumes:
       - ./:/var/www/html
       - /var/www/html/node_modules
-    command: npm run dev
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     networks:
       - laravel_network
 

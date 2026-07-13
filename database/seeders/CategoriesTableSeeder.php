@@ -11,37 +11,52 @@ class CategoriesTableSeeder extends Seeder
     {
         $categories = [
             [
-                'name' => 'Emergency Relief',
+                'name' => ['fr' => 'Aide d\'urgence', 'en' => 'Emergency Relief'],
                 'slug' => 'emergency-relief',
-                'description' => 'Aide d\'urgence pour les familles en situation critique',
+                'description' => [
+                    'fr' => 'Aide d\'urgence pour les familles en situation critique',
+                    'en' => 'Emergency relief for families in critical situations',
+                ],
                 'color' => '#EF4444',
                 'is_active' => true,
             ],
             [
-                'name' => 'Healthcare',
+                'name' => ['fr' => 'Santé', 'en' => 'Healthcare'],
                 'slug' => 'healthcare',
-                'description' => 'Services de santé et soins médicaux pour veuves et orphelins',
+                'description' => [
+                    'fr' => 'Services de santé et soins médicaux pour veuves et orphelins',
+                    'en' => 'Health services and medical care for widows and orphans',
+                ],
                 'color' => '#3B82F6',
                 'is_active' => true,
             ],
             [
-                'name' => 'Education',
+                'name' => ['fr' => 'Éducation', 'en' => 'Education'],
                 'slug' => 'education',
-                'description' => 'Support éducatif et fournitures scolaires',
+                'description' => [
+                    'fr' => 'Support éducatif et fournitures scolaires',
+                    'en' => 'Educational support and school supplies',
+                ],
                 'color' => '#F59E0B',
                 'is_active' => true,
             ],
             [
-                'name' => 'Seasonal Relief',
+                'name' => ['fr' => 'Aide saisonnière', 'en' => 'Seasonal Relief'],
                 'slug' => 'seasonal-relief',
-                'description' => 'Aide saisonnière (vêtements, nourriture, etc.)',
+                'description' => [
+                    'fr' => 'Aide saisonnière (vêtements, nourriture, etc.)',
+                    'en' => 'Seasonal aid (clothing, food, etc.)',
+                ],
                 'color' => '#10B981',
                 'is_active' => true,
             ],
         ];
 
         foreach ($categories as $category) {
-            Category::create($category);
+            Category::updateOrCreate(
+                ['slug' => $category['slug']],
+                $category
+            );
         }
     }
 }

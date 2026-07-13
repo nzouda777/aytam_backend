@@ -69,6 +69,7 @@ class DonationController extends Controller
     {
         $request->validate([
             'campaign_id' => 'nullable|exists:campaigns,id',
+            'program_id' => 'nullable|exists:programs,id',
             'amount' => 'required|numeric|min:100',
             'donor_name' => 'required_without:user_id|string|max:255',
             'donor_email' => 'nullable|email|max:255',
@@ -96,6 +97,9 @@ class DonationController extends Controller
         if ($data['payment_type'] === 'campaign_donation' && isset($data['campaign_id'])) {
             $data['payable_type'] = Campaign::class;
             $data['payable_id'] = $data['campaign_id'];
+        } elseif ($data['payment_type'] === 'program_donation' && isset($data['program_id'])) {
+            $data['payable_type'] = \App\Models\Program::class;
+            $data['payable_id'] = $data['program_id'];
         }
 
         // Créer le don avec statut pending

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasLocalizedTranslations;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use App\Models\Donation;
@@ -11,7 +12,10 @@ use App\Models\Disbursement;
 
 class Campaign extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasLocalizedTranslations;
+    /** @var array<int, string> attributs traduits (JSON fr/en) */
+    public array $translatable = ['title', 'description'];
+
 
     protected $fillable = [
         'category_id',

@@ -6,6 +6,7 @@ use App\Filament\Resources\BlogResource\Pages;
 use App\Models\Post;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -13,6 +14,8 @@ use Illuminate\Support\Str;
 
 class BlogResource extends Resource
 {
+    use Translatable;
+
     protected static ?string $model = Post::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
@@ -58,6 +61,24 @@ class BlogResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->unique(Post::class, 'slug', ignoreRecord: true),
+
+                        Forms\Components\Textarea::make('excerpt')
+                            ->label('Extrait')
+                            ->rows(3)
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('author')
+                            ->label('Auteur')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('category')
+                            ->label('Catégorie')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('read_time')
+                            ->label('Temps de lecture')
+                            ->placeholder('5 min')
+                            ->maxLength(50),
 
                         Forms\Components\RichEditor::make('content')
                             ->label('Contenu')

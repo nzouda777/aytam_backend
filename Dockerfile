@@ -49,7 +49,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progre
 # ---- Frontend assets (Vite) ----
 FROM node:20-bullseye-slim AS assets
 WORKDIR /app
-COPY package*.json vite.config.js ./
+COPY package*.json vite.config.js tsconfig.json ./
 COPY postcss.config.js tailwind.config.js ./
 COPY resources ./resources
 RUN npm install \

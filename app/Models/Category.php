@@ -4,11 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasLocalizedTranslations;
 use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalizedTranslations;
+    /** @var array<int, string> attributs traduits (JSON fr/en) */
+    public array $translatable = ['name', 'description'];
+
 
     protected $fillable = [
         'name',

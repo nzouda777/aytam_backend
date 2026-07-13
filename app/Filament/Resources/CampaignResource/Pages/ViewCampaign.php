@@ -10,11 +10,14 @@ use Filament\Infolists\Infolist;
 
 class ViewCampaign extends ViewRecord
 {
+    use ViewRecord\Concerns\Translatable;
+
     protected static string $resource = CampaignResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            Actions\LocaleSwitcher::make(),
             Actions\EditAction::make(),
         ];
     }
